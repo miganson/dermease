@@ -10,4 +10,4 @@ frontend/dist/
 backend/dist/
 backend/uploads/
 *.log
-
+*.tsbuildinfo
