@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.DS_Store
+Thumbs.db
+frontend/.env
+backend/.env
+frontend/.vite/
+frontend/dist/
+backend/dist/
+backend/uploads/
+*.log
+
