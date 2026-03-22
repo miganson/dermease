@@ -13,6 +13,7 @@ import {
   Typography
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
+import { getFallbackProductImage } from "../../lib/images";
 import { EmptyState } from "../../components/common/EmptyState";
 import { useCart } from "../../hooks/useCart";
 import { formatCurrency } from "../../lib/format";
@@ -52,7 +53,16 @@ export function CartPage() {
               sx={{ alignItems: "flex-start", gap: 2 }}
             >
               <ListItemAvatar>
-                <Avatar src={item.imageUrl} variant="rounded" sx={{ width: 72, height: 72 }} />
+                <Avatar
+                  src={item.imageUrl}
+                  variant="rounded"
+                  sx={{ width: 72, height: 72 }}
+                  imgProps={{
+                    onError: (event) => {
+                      event.currentTarget.src = getFallbackProductImage(item.name);
+                    }
+                  }}
+                />
               </ListItemAvatar>
               <ListItemText
                 primary={item.name}
@@ -101,4 +111,3 @@ export function CartPage() {
     </Stack>
   );
 }
-

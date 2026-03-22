@@ -10,7 +10,13 @@ import type {
 } from "../types/domain";
 
 export const authApi = {
-  register: (payload: { fullName: string; email: string; mobileNumber: string; password: string }) =>
+  register: (payload: {
+    fullName: string;
+    email: string;
+    mobileNumber: string;
+    password: string;
+    acceptedDataPrivacy: boolean;
+  }) =>
     apiRequest<AuthSession>("/auth/register", {
       method: "POST",
       auth: false,
@@ -22,7 +28,33 @@ export const authApi = {
       auth: false,
       body: JSON.stringify(payload)
     }),
+  forgotPassword: (payload: { email: string }) =>
+    apiRequest<{
+      email: string;
+      mockResetCode: string | null;
+      expiresAt: string | null;
+    }>("/auth/forgot-password", {
+      method: "POST",
+      auth: false,
+      body: JSON.stringify(payload)
+    }),
+  resetPassword: (payload: {
+    email: string;
+    resetCode: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) =>
+    apiRequest<null>("/auth/reset-password", {
+      method: "POST",
+      auth: false,
+      body: JSON.stringify(payload)
+    }),
   me: () => apiRequest<User>("/auth/me"),
+  updateProfile: (payload: { fullName: string; mobileNumber: string }) =>
+    apiRequest<User>("/auth/profile", {
+      method: "PATCH",
+      body: JSON.stringify(payload)
+    }),
   logout: () =>
     apiRequest<null>("/auth/logout", {
       method: "POST"
@@ -76,10 +108,19 @@ export const paymentApi = {
       method: "POST",
       body: JSON.stringify({ orderId })
     }),
-  complete: (transactionId: string, outcome: "success" | "failed") =>
+  complete: (
+    transactionId: string,
+    outcome: "success" | "failed",
+    meta?: {
+      cardNetwork?: "Visa" | "Mastercard";
+      cardLast4?: string;
+      gatewayLabel?: string;
+      cardholderName?: string;
+    }
+  ) =>
     apiRequest<Record<string, unknown>>(`/payments/${transactionId}/complete`, {
       method: "POST",
-      body: JSON.stringify({ outcome })
+      body: JSON.stringify({ outcome, meta })
     })
 };
 

@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import type { PropsWithChildren } from "react";
 import { authApi } from "../api/endpoints";
-import { loadStoredSession, persistSession } from "../lib/storage";
+import { clearStoredCart, loadStoredSession, persistSession } from "../lib/storage";
 import type { AuthSession, User } from "../types/domain";
 
 interface AuthContextValue {
@@ -15,7 +15,9 @@ interface AuthContextValue {
     email: string;
     mobileNumber: string;
     password: string;
+    acceptedDataPrivacy: boolean;
   }) => Promise<void>;
+  updateProfile: (payload: { fullName: string; mobileNumber: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -73,10 +75,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
     email: string;
     mobileNumber: string;
     password: string;
+    acceptedDataPrivacy: boolean;
   }) {
     const nextSession = await authApi.register(payload);
     setSession(nextSession);
     persistSession(nextSession);
+  }
+
+  async function updateProfile(payload: { fullName: string; mobileNumber: string }) {
+    const updatedUser = await authApi.updateProfile(payload);
+
+    setSession((currentSession) => {
+      if (!currentSession) {
+        return currentSession;
+      }
+
+      const nextSession = {
+        ...currentSession,
+        user: updatedUser
+      };
+      persistSession(nextSession);
+      return nextSession;
+    });
   }
 
   async function logout() {
@@ -85,6 +105,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     } finally {
       setSession(null);
       persistSession(null);
+      clearStoredCart();
     }
   }
 
@@ -97,6 +118,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         loading,
         login,
         register,
+        updateProfile,
         logout
       }}
     >
@@ -104,4 +126,3 @@ export function AuthProvider({ children }: PropsWithChildren) {
     </AuthContext.Provider>
   );
 }
-

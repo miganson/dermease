@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import { productApi } from "../../api/endpoints";
 import { EmptyState } from "../../components/common/EmptyState";
 import { LoadingState } from "../../components/common/LoadingState";
+import { ProductImage } from "../../components/shop/ProductImage";
 import { useCart } from "../../hooks/useCart";
 import { formatCurrency } from "../../lib/format";
 
@@ -39,10 +40,11 @@ export function ProductDetailsPage() {
     <Grid container spacing={4}>
       <Grid size={{ xs: 12, md: 6 }}>
         <Paper sx={{ p: 2 }}>
-          <img
+          <ProductImage
             src={product.imageUrl}
             alt={product.name}
-            style={{ width: "100%", display: "block", borderRadius: 18, objectFit: "cover" }}
+            label={product.name}
+            sx={{ width: "100%", display: "block", borderRadius: 2.25, objectFit: "cover" }}
           />
         </Paper>
       </Grid>
@@ -83,4 +85,3 @@ export function ProductDetailsPage() {
     </Grid>
   );
 }
-

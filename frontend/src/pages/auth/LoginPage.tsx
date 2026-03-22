@@ -55,6 +55,12 @@ export function LoginPage() {
           </Stack>
         </form>
         <Typography color="text.secondary">
+          Forgot your password?{" "}
+          <Typography component={RouterLink} to="/forgot-password" color="primary.main">
+            Reset it here
+          </Typography>
+        </Typography>
+        <Typography color="text.secondary">
           Need an account?{" "}
           <Typography component={RouterLink} to="/register" color="primary.main">
             Register here
@@ -64,4 +70,3 @@ export function LoginPage() {
     </Paper>
   );
 }
-

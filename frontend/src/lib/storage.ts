@@ -34,3 +34,6 @@ export function persistCart(items: CartItem[]) {
   localStorage.setItem(CART_KEY, JSON.stringify(items));
 }
 
+export function clearStoredCart() {
+  localStorage.removeItem(CART_KEY);
+}

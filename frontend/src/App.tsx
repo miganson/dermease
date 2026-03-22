@@ -11,6 +11,7 @@ import { AccountPage } from "./pages/shop/AccountPage";
 import { OrderTrackingPage } from "./pages/shop/OrderTrackingPage";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
+import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminProductsPage } from "./pages/admin/AdminProductsPage";
 import { AdminInventoryPage } from "./pages/admin/AdminInventoryPage";
@@ -26,6 +27,7 @@ export function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/checkout" element={<CheckoutPage />} />
@@ -47,4 +49,3 @@ export function App() {
     </Routes>
   );
 }
-

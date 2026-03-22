@@ -39,7 +39,8 @@ export const createPaymentSession = asyncHandler(async (req, res) => {
       gatewaySessionId: transaction.gatewaySessionId,
       reference: transaction.reference,
       amount: transaction.amount,
-      status: transaction.status
+      status: transaction.status,
+      method: transaction.method
     },
     "Payment session created",
     201
@@ -53,14 +54,23 @@ export const completePayment = asyncHandler(async (req, res) => {
 
   const payload = z
     .object({
-      outcome: z.enum(["success", "failed"])
+      outcome: z.enum(["success", "failed"]),
+      meta: z
+        .object({
+          cardNetwork: z.enum(["Visa", "Mastercard"]).optional(),
+          cardLast4: z.string().length(4).optional(),
+          gatewayLabel: z.string().min(2).optional(),
+          cardholderName: z.string().min(2).optional()
+        })
+        .optional()
     })
     .parse(req.body);
 
   const transaction = await completeMockPayment(
     String(req.params.transactionId),
     payload.outcome,
-    String(req.currentUser._id)
+    String(req.currentUser._id),
+    payload.meta
   );
 
   return sendSuccess(res, transaction, "Payment session updated");

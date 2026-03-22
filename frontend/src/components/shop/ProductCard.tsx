@@ -1,25 +1,22 @@
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardMedia,
-  Chip,
-  Stack,
-  Typography
-} from "@mui/material";
+import { Button, Card, CardActions, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { formatCurrency } from "../../lib/format";
 import { useCart } from "../../hooks/useCart";
 import type { Product } from "../../types/domain";
+import { ProductImage } from "./ProductImage";
 
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
 
   return (
     <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <CardMedia component="img" height="240" image={product.imageUrl} alt={product.name} />
+      <ProductImage
+        src={product.imageUrl}
+        alt={product.name}
+        label={product.name}
+        sx={{ width: "100%", height: 240, objectFit: "cover", display: "block" }}
+      />
       <CardContent sx={{ flexGrow: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
           <Typography variant="h6">{product.name}</Typography>
@@ -53,4 +50,3 @@ export function ProductCard({ product }: { product: Product }) {
     </Card>
   );
 }
-

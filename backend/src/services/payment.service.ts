@@ -3,6 +3,7 @@ import { OrderModel } from "../models/Order.js";
 import { createAuditLog } from "./audit.service.js";
 import { ApiError } from "../utils/apiError.js";
 import type { PaymentMethod } from "../lib/constants.js";
+import { restoreFailedPaymentOrder } from "./order.service.js";
 
 function buildReference(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -46,7 +47,13 @@ export async function createMockPaymentSession(params: {
 export async function completeMockPayment(
   transactionId: string,
   outcome: "success" | "failed",
-  actorId: string
+  actorId: string,
+  meta?: {
+    cardNetwork?: "Visa" | "Mastercard";
+    cardLast4?: string;
+    gatewayLabel?: string;
+    cardholderName?: string;
+  }
 ) {
   const transaction = await PaymentTransactionModel.findById(transactionId);
   if (!transaction) {
@@ -57,7 +64,8 @@ export async function completeMockPayment(
   transaction.providerPayload = {
     ...(transaction.providerPayload ?? {}),
     resolvedAt: new Date().toISOString(),
-    outcome
+    outcome,
+    ...(meta ?? {})
   };
 
   if (outcome === "success") {
@@ -66,13 +74,13 @@ export async function completeMockPayment(
 
   await transaction.save();
 
-  const order = await OrderModel.findById(transaction.order);
+  let order = await OrderModel.findById(transaction.order);
   if (!order) {
     throw new ApiError(404, "Linked order not found");
   }
 
-  order.paymentStatus = transaction.status;
   if (outcome === "success") {
+    order.paymentStatus = transaction.status;
     order.status = "paid";
     order.statusHistory.push({
       status: "paid",
@@ -80,9 +88,10 @@ export async function completeMockPayment(
       updatedBy: order.customer,
       updatedAt: new Date()
     });
+    await order.save();
+  } else {
+    order = await restoreFailedPaymentOrder(String(order._id), actorId);
   }
-
-  await order.save();
 
   await createAuditLog({
     actorId,
@@ -108,4 +117,3 @@ export async function listPaymentTransactions(limit = 50) {
     .sort({ createdAt: -1 })
     .limit(limit);
 }
-

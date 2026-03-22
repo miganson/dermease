@@ -6,6 +6,9 @@ export interface User {
   email: string;
   mobileNumber: string;
   passwordHash: string;
+  acceptedDataPrivacyAt?: Date;
+  passwordResetCodeHash?: string;
+  passwordResetExpiresAt?: Date;
   role: UserRole;
   isActive: boolean;
   lastLoginAt?: Date;
@@ -34,6 +37,15 @@ const userSchema = new Schema<User>(
       type: String,
       required: true
     },
+    acceptedDataPrivacyAt: {
+      type: Date
+    },
+    passwordResetCodeHash: {
+      type: String
+    },
+    passwordResetExpiresAt: {
+      type: Date
+    },
     role: {
       type: String,
       enum: USER_ROLES,
@@ -53,4 +65,3 @@ const userSchema = new Schema<User>(
 );
 
 export const UserModel = model<User>("User", userSchema);
-

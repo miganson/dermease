@@ -1,19 +1,38 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Alert, Button, Paper, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  Paper,
+  Stack,
+  Typography
+} from "@mui/material";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { FormTextField } from "../../components/common/FormTextField";
 import { useAuth } from "../../hooks/useAuth";
+import {
+  fullNameMessage,
+  fullNameRegex,
+  strongPasswordMessage,
+  strongPasswordRegex
+} from "../../lib/validation";
 
 const schema = z
   .object({
-    fullName: z.string().min(2),
+    fullName: z.string().trim().min(2).regex(fullNameRegex, fullNameMessage),
     email: z.string().email(),
     mobileNumber: z.string().min(7),
-    password: z.string().min(8),
-    confirmPassword: z.string().min(8)
+    password: z.string().regex(strongPasswordRegex, strongPasswordMessage),
+    confirmPassword: z.string().min(8),
+    acceptedDataPrivacy: z
+      .boolean()
+      .refine((value) => value, "You must agree to the data privacy notice before signing up.")
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
@@ -33,7 +52,8 @@ export function RegisterPage() {
       email: "",
       mobileNumber: "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
+      acceptedDataPrivacy: false
     }
   });
 
@@ -44,7 +64,8 @@ export function RegisterPage() {
         fullName: values.fullName,
         email: values.email,
         mobileNumber: values.mobileNumber,
-        password: values.password
+        password: values.password,
+        acceptedDataPrivacy: values.acceptedDataPrivacy
       });
       navigate("/");
     } catch (submissionError) {
@@ -57,7 +78,7 @@ export function RegisterPage() {
       <Stack spacing={2}>
         <Typography variant="h4">Create account</Typography>
         <Typography color="text.secondary">
-          Register once so DermEase can keep your order details complete and easy to track.
+          Register once so DermEase can keep your order details complete, protected, and easy to track.
         </Typography>
         {error ? <Alert severity="error">{error}</Alert> : null}
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -65,13 +86,33 @@ export function RegisterPage() {
             <FormTextField control={control} name="fullName" label="Full name" fullWidth />
             <FormTextField control={control} name="email" label="Email" fullWidth />
             <FormTextField control={control} name="mobileNumber" label="Mobile number" fullWidth />
-            <FormTextField control={control} name="password" label="Password" type="password" fullWidth />
+            <FormTextField
+              control={control}
+              name="password"
+              label="Password"
+              type="password"
+              fullWidth
+              helperText="Use at least 8 characters with uppercase, lowercase, number, and special character."
+            />
             <FormTextField
               control={control}
               name="confirmPassword"
               label="Confirm password"
               type="password"
               fullWidth
+            />
+            <Controller
+              control={control}
+              name="acceptedDataPrivacy"
+              render={({ field, fieldState }) => (
+                <FormControl error={Boolean(fieldState.error)}>
+                  <FormControlLabel
+                    control={<Checkbox checked={field.value} onChange={(_, checked) => field.onChange(checked)} />}
+                    label="I agree to the data privacy notice and consent to the secure processing of my account and order details."
+                  />
+                  <FormHelperText>{fieldState.error?.message}</FormHelperText>
+                </FormControl>
+              )}
             />
             <Button type="submit" variant="contained" size="large" disabled={formState.isSubmitting}>
               Create account

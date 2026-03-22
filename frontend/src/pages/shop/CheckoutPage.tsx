@@ -22,9 +22,10 @@ import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import { formatCurrency } from "../../lib/format";
 import { paymentMethods } from "../../lib/constants";
+import { fullNameMessage, fullNameRegex } from "../../lib/validation";
 
 const schema = z.object({
-  recipientName: z.string().min(2),
+  recipientName: z.string().trim().min(2).regex(fullNameRegex, fullNameMessage),
   contactNumber: z.string().min(7),
   deliveryAddress: z.string().min(10),
   paymentMethod: z.enum(["gcash", "bank_transfer", "card"]),
@@ -69,12 +70,15 @@ export function CheckoutPage() {
     },
     onSuccess: ({ order, paymentSession }) => {
       clearCart();
-      navigate(`/payment/${paymentSession.transactionId}?orderId=${order._id}`, {
+      navigate(
+        `/payment/${paymentSession.transactionId}?orderId=${order._id}&method=${paymentSession.method}`,
+        {
         state: {
           order,
           paymentSession
         }
-      });
+        }
+      );
     }
   });
 
@@ -174,4 +178,3 @@ export function CheckoutPage() {
     </Stack>
   );
 }
-

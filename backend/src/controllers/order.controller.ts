@@ -5,9 +5,10 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendSuccess } from "../utils/response.js";
 import { ApiError } from "../utils/apiError.js";
 import { createOrderWithInventory } from "../services/order.service.js";
+import { fullNameMessage, fullNameRegex } from "../lib/validation.js";
 
 const checkoutSchema = z.object({
-  recipientName: z.string().min(2),
+  recipientName: z.string().trim().min(2).regex(fullNameRegex, fullNameMessage),
   contactNumber: z.string().min(7),
   deliveryAddress: z.string().min(10),
   notes: z.string().optional(),
@@ -61,4 +62,3 @@ export const getMyOrder = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, order);
 });
-

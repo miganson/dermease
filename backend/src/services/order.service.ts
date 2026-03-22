@@ -144,12 +144,46 @@ export async function createOrderWithInventory(input: CreateOrderInput) {
 }
 
 export async function cancelOrderAndRestoreStock(orderId: string, adminId: string) {
+  return restoreOrderStock({
+    orderId,
+    actorId: adminId,
+    actorRole: "admin",
+    note: "Order cancelled and stock restored.",
+    auditAction: "order.cancelled",
+    auditSummary: `Admin cancelled order ${orderId}`,
+    paymentStatus: undefined
+  });
+}
+
+export async function restoreFailedPaymentOrder(orderId: string, customerId: string) {
+  return restoreOrderStock({
+    orderId,
+    actorId: customerId,
+    actorRole: "customer",
+    note: "Payment failed. Order cancelled and stock restored.",
+    auditAction: "payment.failed.stock_restored",
+    auditSummary: `Payment failed and stock was restored for order ${orderId}`,
+    paymentStatus: "failed"
+  });
+}
+
+interface RestoreOrderStockOptions {
+  orderId: string;
+  actorId: string;
+  actorRole: "admin" | "customer";
+  note: string;
+  auditAction: string;
+  auditSummary: string;
+  paymentStatus?: "failed";
+}
+
+async function restoreOrderStock(options: RestoreOrderStockOptions) {
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
 
-    const order = await OrderModel.findById(orderId).session(session);
+    const order = await OrderModel.findById(options.orderId).session(session);
     if (!order) {
       throw new ApiError(404, "Order not found");
     }
@@ -172,10 +206,10 @@ export async function cancelOrderAndRestoreStock(orderId: string, adminId: strin
           {
             product: product._id,
             order: order._id,
-            admin: adminId,
+            admin: options.actorRole === "admin" ? options.actorId : undefined,
             adjustmentType: "cancel_restore",
             quantity: item.quantity,
-            remarks: "Stock restored after order cancellation.",
+            remarks: options.note,
             balanceAfter: product.stockQuantity
           }
         ],
@@ -184,10 +218,13 @@ export async function cancelOrderAndRestoreStock(orderId: string, adminId: strin
     }
 
     order.status = "cancelled";
+    if (options.paymentStatus) {
+      order.paymentStatus = options.paymentStatus;
+    }
     order.statusHistory.push({
       status: "cancelled",
-      note: "Order cancelled and stock restored.",
-      updatedBy: new mongoose.Types.ObjectId(adminId),
+      note: options.note,
+      updatedBy: new mongoose.Types.ObjectId(options.actorId),
       updatedAt: new Date()
     });
 
@@ -195,12 +232,12 @@ export async function cancelOrderAndRestoreStock(orderId: string, adminId: strin
     await session.commitTransaction();
 
     await createAuditLog({
-      actorId: adminId,
-      actorRole: "admin",
-      action: "order.cancelled",
+      actorId: options.actorId,
+      actorRole: options.actorRole,
+      action: options.auditAction,
       entityType: "order",
       entityId: order._id,
-      summary: `Admin cancelled order ${order._id}`,
+      summary: options.auditSummary,
       meta: { restoredItems: order.items.length }
     });
 
@@ -212,4 +249,3 @@ export async function cancelOrderAndRestoreStock(orderId: string, adminId: strin
     session.endSession();
   }
 }
-

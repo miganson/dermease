@@ -29,8 +29,13 @@ const navItems = [
 
 export function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { itemCount } = useCart();
+  const { itemCount, clearCart } = useCart();
   const { user, logout } = useAuth();
+
+  async function handleLogout() {
+    clearCart();
+    await logout();
+  }
 
   return (
     <Box>
@@ -67,7 +72,7 @@ export function MainLayout() {
                 </Badge>
               </IconButton>
               {user ? (
-                <Button onClick={() => void logout()} color="inherit">
+                <Button onClick={() => void handleLogout()} color="inherit">
                   Sign out
                 </Button>
               ) : (
@@ -124,4 +129,3 @@ export function MainLayout() {
     </Box>
   );
 }
-

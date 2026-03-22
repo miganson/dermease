@@ -106,6 +106,7 @@ export interface PaymentSession {
   reference: string;
   amount: number;
   status: PaymentStatus;
+  method: PaymentMethod;
 }
 
 export interface DashboardSummary {
@@ -130,4 +131,3 @@ export interface AuditLog {
   summary: string;
   createdAt: string;
 }
-

@@ -17,7 +17,7 @@ export const productCategories: { value: ProductCategory; label: string }[] = [
 export const paymentMethods: { value: PaymentMethod; label: string }[] = [
   { value: "gcash", label: "GCash" },
   { value: "bank_transfer", label: "Bank Transfer" },
-  { value: "card", label: "Card" }
+  { value: "card", label: "Debit / Credit Card" }
 ];
 
 export const orderStatusLabels: Record<string, string> = {
@@ -28,4 +28,3 @@ export const orderStatusLabels: Record<string, string> = {
   completed: "Completed",
   cancelled: "Cancelled"
 };
-
