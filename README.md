@@ -79,10 +79,15 @@ Security was treated as part of analysis and design, not something added at the 
 - view product details
 - add items to cart
 - review cart and quantities
+- sign up with data privacy consent
+- sign in with validated credentials
+- request a mock password reset code
+- reset password through a database-backed mock flow
 - check out with delivery details
 - create a payment session using a mock gateway-ready flow
 - track order and payment status
 - view account and recent orders
+- edit profile details
 
 ### Admin-side functions
 
@@ -102,13 +107,15 @@ Security was treated as part of analysis and design, not something added at the 
 
 The catalog is the storefront of the system. It displays product image, name, category, price, short description, and stock status. It addresses one of the biggest problems in the paper: customers no longer need to ask repeatedly about what is available.
 
+If a product image fails to load, the frontend automatically renders a generated placeholder image so the catalog and product pages stay visually usable during demos.
+
 ### Online Ordering
 
 The cart and checkout flow standardize the order process. Instead of relying on chat messages, the system captures order data in a structured way.
 
 ### Simple Inventory
 
-Inventory is intentionally simple, in line with the paper. The system reduces stock when an order is placed and restores stock when an order is cancelled. Manual stock adjustments require remarks for accountability.
+Inventory is intentionally simple, in line with the paper. The system reduces stock when an order is placed and restores stock when an order is cancelled. If a payment fails in the mock payment module, the linked order is cancelled and the reserved stock is restored automatically. Manual stock adjustments require remarks for accountability.
 
 ### Checkout
 
@@ -128,8 +135,23 @@ The current implementation uses a gateway-ready mock payment flow. It does not y
 
 - create payment session
 - store payment transaction reference
+- collect mock debit or credit card details for card payments
+- simulate redirect flow for Visa or Mastercard
 - simulate success or failure
 - sync payment result with the linked order
+- restore reserved stock automatically when payment fails
+
+### Account Management and Password Reset
+
+The project now includes a fuller account module for demo purposes:
+
+- customer registration
+- login
+- profile editing
+- mock forgot-password request
+- database-backed password reset using a generated 6-digit reset code
+
+The forgot-password feature is intentionally mock. Instead of sending an email, the system generates a reset code, stores it in the database with an expiry time, and displays it on screen so the full recovery flow can still be demonstrated in class or in a project defense.
 
 ### Reporting
 
@@ -157,7 +179,10 @@ Implemented controls include:
 - payment records linked directly to orders
 - stock deduction inside the order creation flow
 - stock restoration when orders are cancelled
+- stock restoration when payment fails
 - form validation on both frontend and backend
+- stronger password requirements for signup and password reset
+- data privacy consent checkbox during signup
 - secret values stored in `.env`, not in source files
 
 ## 7. Tech Stack
@@ -392,11 +417,15 @@ http://localhost:5173
 3. Filter by category or search by keyword
 4. Open a product details page
 5. Add items to cart
-6. Sign up or sign in
-7. Complete checkout
-8. Continue to the mock payment page
-9. Simulate payment success or failure
-10. Open the orders page to track status
+6. Sign up with data privacy consent and the required password rules
+7. Sign in
+8. Optionally open the mock forgot-password page, generate a reset code, and reset the password
+9. Complete checkout
+10. Continue to the mock payment page
+11. If `Debit / Credit Card` is selected, enter mock Visa or Mastercard details
+12. Simulate payment success or failure
+13. Open the orders page to track status
+14. Open the account page to update profile details
 
 ### Admin demo flow
 
@@ -433,6 +462,7 @@ These correspond directly to the system modules described in the paper.
 - Payment result page
 - Login page
 - Register page
+- Forgot password page
 - Account page
 - Order tracking page
 
@@ -480,6 +510,7 @@ If you share this repo with classmates, teammates, or instructors:
 This build already covers the main modules from the paper, but some future improvements remain out of scope for this version:
 
 - live payment gateway integration
+- real email delivery for forgot password
 - promo codes and discount rules
 - customer reviews and ratings
 - courier API integration
