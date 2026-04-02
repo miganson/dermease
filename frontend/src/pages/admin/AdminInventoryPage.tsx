@@ -2,11 +2,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Alert,
   Button,
+  Chip,
   Grid,
   MenuItem,
   Paper,
   Stack,
-  Typography
+  Typography,
 } from "@mui/material";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -18,8 +19,11 @@ import { LoadingState } from "../../components/common/LoadingState";
 
 const schema = z.object({
   productId: z.string().min(1),
-  adjustment: z.coerce.number().int().refine((value) => value !== 0),
-  remarks: z.string().min(4)
+  adjustment: z.coerce
+    .number()
+    .int()
+    .refine((value) => value !== 0),
+  remarks: z.string().min(4),
 });
 
 type InventoryForm = z.infer<typeof schema>;
@@ -27,7 +31,7 @@ type InventoryForm = z.infer<typeof schema>;
 export function AdminInventoryPage() {
   const inventoryQuery = useQuery({
     queryKey: ["admin", "inventory"],
-    queryFn: adminApi.inventory
+    queryFn: adminApi.inventory,
   });
 
   const { control, handleSubmit, reset, formState } = useForm<InventoryForm>({
@@ -35,8 +39,8 @@ export function AdminInventoryPage() {
     defaultValues: {
       productId: "",
       adjustment: 0,
-      remarks: ""
-    }
+      remarks: "",
+    },
   });
 
   const mutation = useMutation({
@@ -45,11 +49,11 @@ export function AdminInventoryPage() {
       reset({
         productId: "",
         adjustment: 0,
-        remarks: ""
+        remarks: "",
       });
       void queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] });
       void queryClient.invalidateQueries({ queryKey: ["products"] });
-    }
+    },
   });
 
   return (
@@ -67,7 +71,13 @@ export function AdminInventoryPage() {
         >
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <FormTextField control={control} name="productId" label="Product" select fullWidth>
+              <FormTextField
+                control={control}
+                name="productId"
+                label="Product"
+                select
+                fullWidth
+              >
                 {inventoryQuery.data?.map((product) => (
                   <MenuItem key={product._id} value={product._id}>
                     {product.name}
@@ -76,35 +86,76 @@ export function AdminInventoryPage() {
               </FormTextField>
             </Grid>
             <Grid size={{ xs: 12, md: 3 }}>
-              <FormTextField control={control} name="adjustment" label="Adjustment" type="number" fullWidth />
+              <FormTextField
+                control={control}
+                name="adjustment"
+                label="Adjustment"
+                type="number"
+                fullWidth
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 5 }}>
-              <FormTextField control={control} name="remarks" label="Remarks" fullWidth />
+              <FormTextField
+                control={control}
+                name="remarks"
+                label="Remarks"
+                fullWidth
+              />
             </Grid>
           </Grid>
-          <Button type="submit" variant="contained" sx={{ mt: 2 }} disabled={formState.isSubmitting}>
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{ mt: 2 }}
+            disabled={formState.isSubmitting}
+          >
             Apply adjustment
           </Button>
         </form>
       </Paper>
 
-      {inventoryQuery.isLoading ? <LoadingState message="Loading inventory..." /> : null}
-      {inventoryQuery.isError ? <Alert severity="error">Unable to load inventory status.</Alert> : null}
+      {inventoryQuery.isLoading ? (
+        <LoadingState message="Loading inventory..." />
+      ) : null}
+      {inventoryQuery.isError ? (
+        <Alert severity="error">Unable to load inventory status.</Alert>
+      ) : null}
 
       <Grid container spacing={2}>
-        {inventoryQuery.data?.map((product) => (
-          <Grid key={product._id} size={{ xs: 12, md: 6 }}>
-            <Paper sx={{ p: 2 }}>
-              <Stack spacing={1}>
-                <Typography variant="h6">{product.name}</Typography>
-                <Typography color="text.secondary">{product.category}</Typography>
-                <Typography>
-                  Stock: {product.stockQuantity} • Low-stock threshold: {product.lowStockThreshold}
-                </Typography>
-              </Stack>
-            </Paper>
-          </Grid>
-        ))}
+        {inventoryQuery.data?.map((product) => {
+          const isLow = product.stockQuantity <= product.lowStockThreshold;
+          return (
+            <Grid key={product._id} size={{ xs: 12, md: 6 }}>
+              <Paper
+                sx={{
+                  p: 2,
+                  borderLeft: "4px solid",
+                  borderColor: isLow ? "warning.main" : "transparent",
+                }}
+              >
+                <Stack spacing={1}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Typography variant="h6">{product.name}</Typography>
+                    {isLow ? (
+                      <Chip label="Low stock" color="warning" size="small" />
+                    ) : null}
+                  </Stack>
+                  <Typography color="text.secondary">
+                    {product.category}
+                  </Typography>
+                  <Typography>
+                    Stock: {product.stockQuantity} • Low-stock threshold:{" "}
+                    {product.lowStockThreshold}
+                  </Typography>
+                </Stack>
+              </Paper>
+            </Grid>
+          );
+        })}
       </Grid>
     </Stack>
   );
